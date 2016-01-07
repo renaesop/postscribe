@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Postscribe</title>
+  <script src="../dist/postscribe.js"></script>
+</head>
+<body>
+<h1>
+  Test postscribe!
+</h1>
+<div id="test">
+  This is A test.
+</div>
+<script>
+  setTimeout(function(){
+    postscribe('#test', "<span>Success! That's cool！</span> <script>document.write('Hello, world!');console.log('no') \x3c/script>");
+  }, 500)
+
+</script>
+</body>
+</html>

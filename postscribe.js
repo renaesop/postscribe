@@ -5,6 +5,7 @@
 //     http://krux.github.io/postscribe
 /*globals htmlParser:false*/
 (function() {
+  'use strict';
   // A function that intentionally does nothing.
   function doNothing() {}
 
@@ -35,7 +36,7 @@
   };
 
   var global = this;
-
+  //保护undefined
   var UNDEFINED = void 0;
 
   function existy(thing) {
@@ -77,7 +78,13 @@
   }
 
   // Set properties on an object.
-  function set(obj, props) {
+  /**
+   * 相当于Object.assign
+   * @param obj
+   * @param props
+   * @returns {*}
+     */
+  function assign(obj, props) {
     eachKey(props, function(key, value) {
       obj[key] = value;
     });
@@ -114,11 +121,11 @@
 
   // Test if token is a script tag.
   function isScript(tok) {
-    return !tok || !('tagName' in tok) ? !1 : !!~tok.tagName.toLowerCase().indexOf('script');
+    return !tok || !('tagName' in tok) ? false : !!~tok.tagName.toLowerCase().indexOf('script');
   }
 
   function isStyle(tok) {
-    return !tok || !('tagName' in tok) ? !1 : !!~tok.tagName.toLowerCase().indexOf('style');
+    return !tok || !('tagName' in tok) ? false : !!~tok.tagName.toLowerCase().indexOf('style');
   }
 
   // # Class WriteStream
@@ -165,7 +172,7 @@
     function WriteStream(root, options) {
       var doc = root.ownerDocument;
 
-      set(this, {
+      assign(this, {
         root: root,
 
         options: options,
@@ -565,7 +572,7 @@
       }
 
       // Set handlers
-      set(el, {
+      assign(el, {
         onload: function() {
           success();
         },
@@ -634,7 +641,7 @@
         options.afterWrite(str);
       }
 
-      set(doc, {
+      assign(doc, {
         close: doNothing,
         open: doNothing,
         write: function(){
@@ -658,7 +665,7 @@
       // Write to the stream
       active.write(html, function streamDone() {
         // restore document.write
-        set(doc, stash);
+        assign(doc, stash);
 
         // restore window.onerror
         active.win.onerror = oldOnError;
@@ -707,7 +714,7 @@
       return el.postscribe;
     }
 
-    return set(postscribe, {
+    return assign(postscribe, {
       // Streams by name.
       streams: {},
       // Queue of streams.
@@ -716,4 +723,4 @@
       WriteStream: WriteStream
     });
   }());
-}());
+}.call(window ? window.window : this));

@@ -1,5 +1,5 @@
 /* Asynchronously write javascript, even with document.write., v1.4.0 https://krux.github.io/postscribe
-Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/blob/master/LICENSE */// An html parser written in JavaScript
+Copyright (c) 2016 Derek Brans, MIT license https://github.com/krux/postscribe/blob/master/LICENSE */// An html parser written in JavaScript
 // Based on http://ejohn.org/blog/pure-javascript-html-parser/
 //TODO(#39)
 /*globals console:false*/
@@ -86,7 +86,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
         var index = stream.indexOf('-->');
         if ( index >= 0 ) {
           return {
-            content: stream.substr(4, index),
+            content: stream.substr(4, index-1),
             length: index + 3
           };
         }
@@ -474,7 +474,13 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
   }
 
   // Set properties on an object.
-  function set(obj, props) {
+  /**
+   * 相当于Object.assign
+   * @param obj
+   * @param props
+   * @returns {*}
+     */
+  function assign(obj, props) {
     eachKey(props, function(key, value) {
       obj[key] = value;
     });
@@ -511,11 +517,11 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
 
   // Test if token is a script tag.
   function isScript(tok) {
-    return !tok || !('tagName' in tok) ? !1 : !!~tok.tagName.toLowerCase().indexOf('script');
+    return !tok || !('tagName' in tok) ? false : !!~tok.tagName.toLowerCase().indexOf('script');
   }
 
   function isStyle(tok) {
-    return !tok || !('tagName' in tok) ? !1 : !!~tok.tagName.toLowerCase().indexOf('style');
+    return !tok || !('tagName' in tok) ? false : !!~tok.tagName.toLowerCase().indexOf('style');
   }
 
   // # Class WriteStream
@@ -562,7 +568,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
     function WriteStream(root, options) {
       var doc = root.ownerDocument;
 
-      set(this, {
+      assign(this, {
         root: root,
 
         options: options,
@@ -962,7 +968,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
       }
 
       // Set handlers
-      set(el, {
+      assign(el, {
         onload: function() {
           success();
         },
@@ -1031,7 +1037,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
         options.afterWrite(str);
       }
 
-      set(doc, {
+      assign(doc, {
         close: doNothing,
         open: doNothing,
         write: function(){
@@ -1055,7 +1061,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
       // Write to the stream
       active.write(html, function streamDone() {
         // restore document.write
-        set(doc, stash);
+        assign(doc, stash);
 
         // restore window.onerror
         active.win.onerror = oldOnError;
@@ -1104,7 +1110,7 @@ Copyright (c) 2015 Derek Brans, MIT license https://github.com/krux/postscribe/b
       return el.postscribe;
     }
 
-    return set(postscribe, {
+    return assign(postscribe, {
       // Streams by name.
       streams: {},
       // Queue of streams.
