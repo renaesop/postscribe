@@ -3,6 +3,9 @@
 //TODO(#39)
 /*globals console:false*/
 (function() {
+  /**
+   * 为什么只以后面的优先
+   */
   var supports = (function() {
     var supports = {};
 
@@ -22,8 +25,21 @@
 
 
   // Regular Expressions for parsing tags and attributes
+  //考虑了<img />之类的自闭标签
   var startTag = /^<([\-A-Za-z0-9_]+)((?:\s+[\w\-]+(?:\s*=?\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/;
   var endTag = /^<\/([\-A-Za-z0-9_]+)[^>]*>/;
+  //?:非捕获性分组
+  /**
+   * attr名字均被捕获
+   *
+   * attr has 4types of declaration:
+   * 1. attr = "124213"
+   * 2. attr = '12354'
+   * 3. attr = 12345
+   * 4. async
+   *
+   * @type {RegExp}
+     */
   var attr = /(?:([\-A-Za-z0-9_]+)\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))|(?:([\-A-Za-z0-9_]+)(\s|$)+)/g;
   var fillAttr = /^(checked|compact|declare|defer|disabled|ismap|multiple|nohref|noresize|noshade|nowrap|readonly|selected)$/i;
 
@@ -49,6 +65,12 @@
     // Cache div element for unescaping html entities
     var el = document.createElement('div');
 
+    /**
+     * 利用innerHtml
+     *和innerText, textContent反转义&开头的字符串
+     * @param html
+     * @returns {*}
+       */
     var unescapeHTMLEntities = function(html) {
       if ( (typeof html === 'string') && (html.indexOf('&') !== -1) ) {
         el.innerHTML = html;
@@ -68,6 +90,7 @@
       stream = str + stream;
     };
 
+    //这货是说解析的优先级？！
     // Order of detection matters: detection of one can only
     // succeed if detection of previous didn't
     var detect = {
@@ -102,6 +125,13 @@
         }
       },
 
+        /**
+         * 规范的单个元素
+         * <sample attr1 = "1234">
+         *    Hello!
+         * </sample>
+         * @returns {{tagName: *, attrs: {}, content: *, length: *}}
+         */
       atomicTag: function() {
         var start = reader.startTag();
         if(start) {
@@ -126,6 +156,9 @@
       startTag: function() {
 
         var endTagIndex = stream.indexOf('>');
+        /**
+         * 标签流已经完结
+         */
         if(endTagIndex === -1) {
           return null; //avoid the match statement if there will be no match
         }
@@ -137,16 +170,18 @@
           var booleanAttrs = {};
           var rest = match[2];
 
-          match[2].replace(attr, function(match, name) {
+          match[2].replace(attr, function(match, attrName) {
             if (!(arguments[2] || arguments[3] || arguments[4] || arguments[5])) {
-              attrs[name] = null;
-            } else if (arguments[5]) {
+              attrs[attrName] = null;
+            }
+            else if (arguments[5]) {
               attrs[arguments[5]] = '';
-              booleanAttrs[name] = true;
-            } else {
+              booleanAttrs[attrName] = true;
+            }
+            else {
               var value = arguments[2] || arguments[3] || arguments[4] ||
-                fillAttr.test(name) && name || '';
-              attrs[name] = unescapeHTMLEntities(value);
+                fillAttr.test(attrName) && attrName || '';
+              attrs[attrName] = unescapeHTMLEntities(value);
             }
             rest = rest.replace(match, '');
           });
@@ -357,7 +392,7 @@
         var str = '<'+tok.tagName;
         for (var key in tok.attrs) {
           str += ' '+key;
-          
+
           var val = tok.attrs[key];
           if (typeof tok.booleanAttrs == 'undefined' || typeof tok.booleanAttrs[key] == 'undefined') {
             // escape quotes
