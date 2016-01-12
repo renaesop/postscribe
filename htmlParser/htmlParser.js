@@ -164,7 +164,9 @@
         }
 
         var match = stream.match( startTag );
-
+        /**
+         * 递归获取html标签的属性和属性值
+         */
         if ( match ) {
           var attrs = {};
           var booleanAttrs = {};
@@ -205,6 +207,10 @@
       }
     };
 
+      /**
+       * 有优先级地获取token
+       * @returns {*}
+       */
     var readToken = function() {
 
       // Enumerate detects in order
@@ -229,7 +235,10 @@
         }
       }
     };
-
+    /**
+     * 解析文档
+     * @param handlers
+     */
     var readTokens = function(handlers) {
       var tok;
       while((tok = readToken())) {
